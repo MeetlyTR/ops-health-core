@@ -1,8 +1,12 @@
 """Kill switch logic."""
 
+import logging
+
 from ops_health_core.model import HealthState, OpsPolicy, OpsSignal, OpsState
 from ops_health_core.scorer import compute_health_score
 from decision_schema.types import Action
+
+logger = logging.getLogger(__name__)
 
 
 def update_kill_switch(
@@ -15,6 +19,7 @@ def update_kill_switch(
     
     If state == RED => set cooldown_until = now + cooldown_ms
     During cooldown => deny_actions = True, recommended_action = HOLD
+    On any exception: fail-closed (deny_actions=True, recommended_action=HOLD).
     
     Args:
         state: Current ops state
@@ -24,7 +29,18 @@ def update_kill_switch(
     Returns:
         OpsSignal with kill switch recommendations
     """
-    score, health_state = compute_health_score(state, policy, now_ms)
+    try:
+        score, health_state = compute_health_score(state, policy, now_ms)
+    except Exception as e:
+        logger.warning("Kill switch fail-closed on exception: %s", type(e).__name__)
+        return OpsSignal(
+            score=0.0,
+            state=HealthState.RED,
+            deny_actions=True,
+            cooldown_until_ms=None,
+            recommended_action=Action.HOLD,
+            reasons=["fail_closed_exception"],
+        )
 
     # Check if already in cooldown
     in_cooldown = state.cooldown_until_ms is not None and now_ms < state.cooldown_until_ms
