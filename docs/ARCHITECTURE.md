@@ -70,7 +70,7 @@ Determines:
 
 Ops-health core tracks:
 - Errors (timestamps)
-- Rate limits (429 responses, timestamps)
+- Rate-limit events (timestamps)
 - Reconnects (timestamps)
 - Latency (p95 latency)
 

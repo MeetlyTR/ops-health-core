@@ -20,7 +20,7 @@ from ops_health_core.model import OpsPolicy, OpsState
 
 policy = OpsPolicy(
     max_errors_per_window=10,
-    max_429_per_window=5,
+    max_rate_limit_events_per_window=5,
     max_reconnects_per_window=3,
     max_p95_latency_ms=1000,
     window_ms=60000,
@@ -141,13 +141,13 @@ score = compute_health_score(state, policy)
 ### OpsPolicy Parameters
 
 - `max_errors_per_window`: Maximum errors allowed in window
-- `max_429_per_window`: Maximum rate limits allowed in window
+- `max_rate_limit_events_per_window`: Maximum rate-limit events allowed in window
 - `max_reconnects_per_window`: Maximum reconnects allowed in window
 - `max_p95_latency_ms`: Maximum p95 latency threshold
 - `window_ms`: Time window for sliding window counters
 - `cooldown_ms`: Cooldown period when kill switch activates
 - `weight_errors`: Weight for error penalty (default: 0.4)
-- `weight_429`: Weight for rate-limit penalty (default: 0.3)
+- `weight_rate_limit`: Weight for rate-limit penalty (default: 0.3)
 - `weight_reconnects`: Weight for reconnect penalty (default: 0.2)
 - `weight_latency`: Weight for latency penalty (default: 0.1)
 - `green_threshold`: Score threshold for GREEN state (default: 0.6)

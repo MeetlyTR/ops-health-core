@@ -16,7 +16,7 @@ Prunes timestamps outside window before counting.
 
 ```
 p_err = min(1, errors_in_window / max_errors_per_window)
-p_429 = min(1, rate_limits_in_window / max_429_per_window)
+p_rate_limit = min(1, rate_limit_events_in_window / max_rate_limit_events_per_window)
 p_rec = min(1, reconnects_in_window / max_reconnects_per_window)
 p_lat = min(1, max(0, (p95_latency - max_p95_latency_ms) / max_p95_latency_ms))
 ```
@@ -24,7 +24,7 @@ p_lat = min(1, max(0, (p95_latency - max_p95_latency_ms) / max_p95_latency_ms))
 ### Weighted Score
 
 ```
-score = 1 - (w1 * p_err + w2 * p_429 + w3 * p_rec + w4 * p_lat)
+score = 1 - (w1 * p_err + w2 * p_rate_limit + w3 * p_rec + w4 * p_lat)
 ```
 
 Where:
