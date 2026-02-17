@@ -1,89 +1,43 @@
-# Ops-Health Core Formulas
-
-## Sliding Window
-
-### Event Count in Window
-
-```
-count = len([ts for ts in timestamps if now_ms - ts <= window_ms])
-```
-
-Prunes timestamps outside window before counting.
+# Formulas — ops-health-core
 
 ## Health Score
 
-### Penalty Components
-
 ```
-p_err = min(1, errors_in_window / max_errors_per_window)
-p_rate_limit = min(1, rate_limit_events_in_window / max_rate_limit_events_per_window)
-p_rec = min(1, reconnects_in_window / max_reconnects_per_window)
-p_lat = min(1, max(0, (p95_latency - max_p95_latency_ms) / max_p95_latency_ms))
-```
+p_err = min(1, errors/max_errors)
+p_rate_limit = min(1, rate_limit_events/max_rate_limit_events)
+p_rec = min(1, reconnects/max_reconnects)
+p_lat = min(1, max(0, (p95_latency - max_p95_latency) / max_p95_latency))
 
-### Weighted Score
-
-```
-score = 1 - (w1 * p_err + w2 * p_rate_limit + w3 * p_rec + w4 * p_lat)
+score = 1 - (w1*p_err + w2*p_rate_limit + w3*p_rec + w4*p_lat)
 ```
 
-Where:
-- `w1`: Weight for errors (default: 0.4)
-- `w2`: Weight for rate limits (default: 0.3)
-- `w3`: Weight for reconnects (default: 0.2)
-- `w4`: Weight for latency (default: 0.1)
+Where `p_*` are normalized penalty factors [0, 1].
 
-Score is clamped to [0.0, 1.0].
+## State thresholds
 
-## Health State
+- **GREEN**: score >= yellow_threshold (default 0.6)
+- **YELLOW**: red_threshold <= score < yellow_threshold (default 0.3-0.6)
+- **RED**: score < red_threshold (default 0.3)
 
-### Thresholds
+## Kill-switch condition
 
 ```
-if score >= green_threshold (default: 0.6):
-    state = "GREEN"
-elif score >= yellow_threshold (default: 0.3):
-    state = "YELLOW"
-else:
-    state = "RED"
+kill_switch_active = (score < red_threshold) OR (now_ms < cooldown_until_ms)
 ```
 
-## Kill Switch
+When kill-switch is active:
+- `deny_actions = True`
+- `recommended_action = Action.HOLD`
+- `cooldown_until_ms = now_ms + cooldown_ms`
 
-### Activation
+## Sliding window
 
-```
-if state == "RED":
-    deny_actions = True
-    cooldown_until_ms = now_ms + cooldown_ms
-else:
-    deny_actions = False
-    cooldown_until_ms = None
-```
+Events are tracked in sliding windows:
+- Window size: `window_ms` (default: 60000 = 1 minute)
+- Events outside window are discarded
 
-### Expiration
+## Invariants
 
-```
-if now_ms >= cooldown_until_ms AND state == "GREEN":
-    deny_actions = False
-    cooldown_until_ms = None
-```
-
-Kill switch expires automatically when health returns to GREEN after cooldown period.
-
-## Integration with DMC
-
-### Context Conversion
-
-```
-context = {
-    "ops_deny_actions": signal.deny_actions,
-    "ops_state": signal.state.value,
-    "ops_cooldown_until_ms": signal.cooldown_until_ms,
-}
-```
-
-DMC ops-health guard checks these keys:
-- `ops_deny_actions == True` → return STOP
-- `ops_state == "RED"` → return STOP
-- `now_ms < ops_cooldown_until_ms` → return STOP
+- **Fail-closed**: On errors, recommend `Action.HOLD`
+- **Deterministic**: Same inputs → same outputs
+- **Bounded**: Score always in [0, 1]
