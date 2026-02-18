@@ -57,7 +57,7 @@ pip install -e .
 
 Or from git:
 ```bash
-pip install git+https://github.com/MeetlyTR/ops-health-core.git
+pip install git+https://github.com/MchtMzffr/ops-health-core.git
 ```
 
 ## Tests
