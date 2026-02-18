@@ -17,6 +17,20 @@ def prune_timestamps(timestamps: list[int], now_ms: int, window_ms: int) -> list
     return [ts for ts in timestamps if ts >= cutoff_ms]
 
 
+def prune_timestamps_inplace(timestamps: list[int], now_ms: int, window_ms: int) -> None:
+    """
+    Prune timestamps in-place (mutates list to avoid unbounded growth).
+    
+    Args:
+        timestamps: List of event timestamps (ms) - will be modified
+        now_ms: Current time (ms)
+        window_ms: Window duration (ms)
+    """
+    cutoff_ms = now_ms - window_ms
+    # Remove items before cutoff (in-place, efficient)
+    timestamps[:] = [ts for ts in timestamps if ts >= cutoff_ms]
+
+
 def count_in_window(timestamps: list[int], now_ms: int, window_ms: int) -> int:
     """
     Count events within sliding window.

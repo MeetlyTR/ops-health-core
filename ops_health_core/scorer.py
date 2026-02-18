@@ -35,14 +35,18 @@ def compute_health_score(state: OpsState, policy: OpsPolicy, now_ms: int) -> tup
     p_rec = min(1.0, reconnects / policy.max_reconnects_per_window) if policy.max_reconnects_per_window > 0 else 0.0
 
     # Latency penalty
+    # Note: latency_samples is currently timestamp-less; consider adding latency_timestamps
+    # for proper window pruning. For now, we compute p95 on all samples.
+    # TODO (F2): Add latency_timestamps to OpsState for proper window-based pruning
     p_lat = 0.0
     if state.latency_samples:
         sorted_latencies = sorted(state.latency_samples)
         n = len(sorted_latencies)
-        p95_idx = int(0.95 * n)
-        p95_latency = sorted_latencies[min(p95_idx, n - 1)]
-        if p95_latency > policy.max_p95_latency_ms:
-            p_lat = min(1.0, (p95_latency - policy.max_p95_latency_ms) / policy.max_p95_latency_ms)
+        if n > 0:
+            p95_idx = int(0.95 * n)
+            p95_latency = sorted_latencies[min(p95_idx, n - 1)]
+            if p95_latency > policy.max_p95_latency_ms:
+                p_lat = min(1.0, (p95_latency - policy.max_p95_latency_ms) / policy.max_p95_latency_ms)
 
     # Weighted score
     score = 1.0 - (

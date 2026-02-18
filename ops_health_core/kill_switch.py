@@ -29,6 +29,13 @@ def update_kill_switch(
     Returns:
         OpsSignal with kill switch recommendations
     """
+    # Prune timestamps in-place to avoid unbounded growth (F2 fix)
+    from ops_health_core.windows import prune_timestamps_inplace
+    
+    prune_timestamps_inplace(state.error_timestamps, now_ms, policy.window_ms)
+    prune_timestamps_inplace(state.rate_limit_timestamps, now_ms, policy.window_ms)
+    prune_timestamps_inplace(state.reconnect_timestamps, now_ms, policy.window_ms)
+    
     try:
         score, health_state = compute_health_score(state, policy, now_ms)
     except Exception as e:
