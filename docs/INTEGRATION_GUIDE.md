@@ -17,7 +17,7 @@ from decision_schema.types import Action
 # Create policy
 policy = OpsPolicy(
     max_errors_per_window=10,
-    max_rate_limit_events_per_window=5,
+    max_429_per_window=5,
     cooldown_ms=30000,
 )
 
