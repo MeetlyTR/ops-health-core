@@ -7,16 +7,18 @@ SPDX-License-Identifier: MIT
 
 ## Health Score
 
-```
-p_err = min(1, errors/max_errors)
-p_rate_limit = min(1, rate_limit_events/max_rate_limit_events)
-p_rec = min(1, reconnects/max_reconnects)
-p_lat = min(1, max(0, (p95_latency - max_p95_latency) / max_p95_latency))
+Policy parameter **max_429_per_window** (rate-limit / 429 events per window) aligns with code (`OpsPolicy.max_429_per_window`).
 
-score = 1 - (w1*p_err + w2*p_rate_limit + w3*p_rec + w4*p_lat)
+```
+p_err = min(1, errors/max_errors_per_window)
+p_429 = min(1, rate_limit_events/max_429_per_window)
+p_rec = min(1, reconnects/max_reconnects_per_window)
+p_lat = min(1, max(0, (p95_latency - max_p95_latency_ms) / max_p95_latency_ms))
+
+score = 1 - (w1*p_err + w2*p_429 + w3*p_rec + w4*p_lat)
 ```
 
-Where `p_*` are normalized penalty factors [0, 1].
+Where `p_*` are normalized penalty factors [0, 1]. Weights: `weight_errors`, `weight_429`, `weight_reconnects`, `weight_latency`.
 
 ## State thresholds
 
