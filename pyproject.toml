@@ -14,6 +14,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7", "ruff"]
 
+[project.scripts]
+ops-health = "ops_health_core.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["ops_health_core*"]

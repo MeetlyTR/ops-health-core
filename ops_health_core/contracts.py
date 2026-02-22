@@ -7,12 +7,12 @@ from decision_schema import __version__ as schema_version
 from decision_schema.compat import is_compatible
 
 
-def check_schema_compatibility(expected_minor: int = 1) -> None:
+def check_schema_compatibility(expected_minor: int = 2) -> None:
     """
     Check if decision-schema version is compatible.
 
     Args:
-        expected_minor: Expected minor version (default: 1 for 0.1.x)
+        expected_minor: Expected minor version (default: 2 for 0.2.x)
 
     Raises:
         RuntimeError: If schema version is incompatible

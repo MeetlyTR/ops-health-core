@@ -26,7 +26,7 @@ def main() -> None:
     try:
         check_schema_compatibility()
     except RuntimeError as e:
-        print(f"❌ Schema compatibility check failed: {e}")
+        print(f"[FAIL] Schema compatibility check failed: {e}")
         return
 
     # Load policy
